@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 /home/lies_mlp/miniconda3/envs/liesmlp/bin/python main.py
