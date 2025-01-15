@@ -22,8 +22,8 @@ The repository is divided into two main parts:
 # Train MLP
    - This part is responsible for training the MLP models.
    - Training consists of two stages:
-     **Create Dataset:** Randomly generate an MLP with a specified activation and sparsity level, and generate enough input-output pairs to form a dataset.
-     **Search MLP:** Train the MLP using the generated dataset.
+     1. Create Dataset: Randomly generate an MLP with a specified activation and sparsity level, and generate enough input-output pairs to form a dataset.
+     2. Search MLP: Train the MLP using the generated dataset.
    - Code and resources for this are found in the `training_MLP` folder.
    - **Usage:**
      1. Create Dataset:
