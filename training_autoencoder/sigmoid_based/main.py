@@ -14,7 +14,6 @@ import logging
 import os
 import torch.nn.init as init
 from torch.optim.lr_scheduler import StepLR
-from MLP_train import MLP_train
 
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
