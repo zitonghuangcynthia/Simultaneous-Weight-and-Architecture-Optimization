@@ -6,7 +6,6 @@ import numpy as np
 from numpy import random
 from CreateDataset import CreateDataset
 from autoencoder import AutoEncoder
-from MLP_train import MLP_train
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 

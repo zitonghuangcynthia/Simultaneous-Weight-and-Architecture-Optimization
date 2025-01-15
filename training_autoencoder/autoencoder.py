@@ -188,7 +188,7 @@ class AutoEncoder(nn.Module):
           decoded = decoder(input_decoder_matrix, i)
           mask = decoded[:, -(i+1):]
           decoded_matrix = decoded[:, :-(i+1)]
-          all_masks.append(mask)
+          # all_masks.append(mask)
 
           new_mask = torch.ones_like(decoded_matrix)
           new_mask[:2, :self.input_height] = 0
@@ -211,4 +211,4 @@ class AutoEncoder(nn.Module):
           decoded_matrix = decoded_matrix * new_mask
           all_decoded_matrix.append(decoded_matrix)
 
-        return all_decoded_matrix, all_masks
+        return all_decoded_matrix
