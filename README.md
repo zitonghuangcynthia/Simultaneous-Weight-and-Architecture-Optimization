@@ -5,7 +5,7 @@
 
 The repository is divided into two main parts:
 
-**Train Autoencoder**
+# Train Autoencoder
    - This part focuses on training the autoencoder.
    - The purpose is to ensure that in the embedding space, two MLPs with similar functions are close to each other.
    - Code and resources related to this are located in the `training_autoencoder` folder.
@@ -19,7 +19,7 @@ The repository is divided into two main parts:
      - `linear`
 
 
-**Train MLP**
+# Train MLP
    - This part is responsible for training the MLP models.
    - Training consists of two stages:
      1. **Create Dataset:** Randomly generate an MLP with a specified activation and sparsity level, and generate enough input-output pairs to form a dataset.
