@@ -92,9 +92,10 @@ def generate_weight(sparsity_model):
 
 # Calculate for the output values
 class MLP(nn.Module):
-  def __init__(self, input_size, hidden_size, output_size, custom_weights, num_hidden_layer, pad_upper, pad_lower):
+  def __init__(self, input_size, hidden_size, output_size, custom_weights, num_hidden_layer, pad_upper, pad_lower, activation_fn):
     super(MLP, self).__init__()
     self.num_hidden_layer = num_hidden_layer
+    self.activation_fn = activation_fn
 
     # Initialize layers
     self.fc_layers = nn.ModuleList()
@@ -116,7 +117,7 @@ class MLP(nn.Module):
 
   def forward(self, x, num_nodes):
     for i, layer in enumerate(self.fc_layers):
-      x = torch.sigmoid(layer(x))
+      x = self.activation_fn(layer(x))
     x = self.output_layer(x)
     return x
 
@@ -167,7 +168,7 @@ def generate_mask(num_hidden_layer):
 
 
 # Generate and combine the whole dataset (input values, input MLPs, output values)
-def generate_dataset(num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, hidden_size):
+def generate_dataset(num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, hidden_size, activation_fn):
   dataset = []
 
   for num_hidden_layer in num_hidden_layers:
@@ -184,7 +185,7 @@ def generate_dataset(num_samples, input_size, output_size, num_hidden_layers, sp
       # Generate input
       input_data = generate_input(input_size)
       # Create MLP model
-      mlp_model = MLP(input_size, hidden_size, output_size, weights_input.squeeze(0), num_hidden_layer, pad_upper, pad_lower)
+      mlp_model = MLP(input_size, hidden_size, output_size, weights_input.squeeze(0), num_hidden_layer, pad_upper, pad_lower, activation_fn)
       # Forward pass
       output = mlp_model(torch.Tensor(input_data), num_hidden_nodes)
       dataset.append((input_data, output, input_MLP))

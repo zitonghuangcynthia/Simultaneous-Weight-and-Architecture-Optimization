@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
-def validation(autoencoder):   
+def validation(autoencoder, activation_fn):   
   input_size = 3
   output_size = 1
   num_samples = 1000
@@ -27,7 +27,7 @@ def validation(autoencoder):
   for it in range (50):
     with torch.no_grad():
       # Create dataset
-      lengths_list, weights_list, inputs, outputs = CreateDataset(num_samples, input_size, output_size, max_hidden_size)
+      lengths_list, weights_list, inputs, outputs = CreateDataset(num_samples, input_size, output_size, max_hidden_size, activation_fn)
       inputs_tensor = torch.stack(inputs)
 
       all_decoded = []
@@ -59,7 +59,7 @@ def validation(autoencoder):
             mask = mask[:, :1, :]
             mask = mask.repeat(1, inputs_tensor.size(1), 1)
             prev_result = torch.matmul(inputs_tensor, sliced_matrix)
-            prev_result = torch.sigmoid(prev_result) * mask
+            prev_result = activation_fn(prev_result) * mask
             curr_result = prev_result
           else:
             mask = (sliced_matrix != 0).float()
@@ -68,7 +68,7 @@ def validation(autoencoder):
             row_indices = torch.argmax(non_zero_mask, dim=1)
             selected_rows = mask[torch.arange(mask.size(0)), row_indices].unsqueeze(1)  #[32, 1, 7]
             mask = selected_rows.repeat(1, 1000, 1)
-            curr_result = torch.sigmoid(curr_result) * mask
+            curr_result = activation_fn(curr_result) * mask
             prev_result = curr_result
 
         # Last layer

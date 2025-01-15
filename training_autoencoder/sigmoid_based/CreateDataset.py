@@ -8,7 +8,7 @@ from CustomDataset import CustomDataset
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-def CreateDataset(num_samples, input_size, output_size, max_hidden_size):
+def CreateDataset(num_samples, input_size, output_size, max_hidden_size, activation_fn):
   # Create dataloader
   # List for generating dataset
   sparsity_rates_choices = [0.5, 0.7, 0.8, 0.9]
@@ -30,7 +30,7 @@ def CreateDataset(num_samples, input_size, output_size, max_hidden_size):
     num_hidden_layers.append(random.choice(num_hidden_layers_choices))
 
 
-  dataset = CustomDataset(num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, max_hidden_size)
+  dataset = CustomDataset(num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, max_hidden_size, activation_fn)
   inputs = [data[0] for data in dataset]
   outputs = [data[1] for data in dataset]
   weights = [data[2] for data in dataset]

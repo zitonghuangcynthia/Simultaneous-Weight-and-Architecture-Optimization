@@ -9,13 +9,14 @@ from data import generate_dataset
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 class CustomDataset(Dataset):
-    def __init__(self, num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, max_hidden_size):
+    def __init__(self, num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, max_hidden_size, activation_fn):
         self.num_samples = num_samples
         self.input_size = input_size
         self.output_size = output_size
         self.num_hidden_layers = num_hidden_layers
         self.sparsity_rates = sparsity_rates
-        self.data = generate_dataset(num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, max_hidden_size)
+        self.activation_fn = activation_fn
+        self.data = generate_dataset(num_samples, input_size, output_size, num_hidden_layers, sparsity_rates, max_hidden_size, activation_fn)
 
         # Calculate the maximum column size
         max_column_size = 4 * max_hidden_size + 1 + 4

@@ -15,12 +15,21 @@ import os
 import torch.nn.init as init
 from torch.optim.lr_scheduler import StepLR
 
-
+# Select device for training (GPU if available, otherwise CPU)
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 logging.basicConfig(filename='memory_usage.log', level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 # Training plot within every epoch, measured in Mean Squared Error (MSE)
 def training_plot(all_loss, avg_loss, num_plot, epoch):
+  """
+    Plots average loss during training.
+
+    Args:
+        all_loss (list): List of all loss values.
+        avg_loss (list): List of average loss values.
+        num_plot (int): Interval for sampling points to plot.
+        epoch (int): Current epoch.
+  """
   # Sample values
   avg_loss_np = [loss_item for loss_item in avg_loss]
   x_values = range(len(avg_loss_np))
@@ -43,6 +52,13 @@ def training_plot(all_loss, avg_loss, num_plot, epoch):
 
 # Training loss plot after each epoch, measured in Mean Squared Error (MSE)
 def overall_training_plot(training_avg_loss, save_path='all_training_loss.png'):
+  """
+    Plots training loss across epochs.
+
+    Args:
+        training_avg_loss (list): Average loss for each epoch.
+        save_path (str): Path to save the plot.
+  """
   epochs = range(1, 1 + len(training_avg_loss))  
   plt.figure(figsize=(10, 6))
   plt.plot(epochs, training_avg_loss, marker='o', linestyle='-', label='Training Loss')
@@ -59,6 +75,13 @@ def overall_training_plot(training_avg_loss, save_path='all_training_loss.png'):
 
 # Validation loss plot after each epoch, measured in Median Percentage Error (MPE)
 def plot_validation(all_loss, num_plot):
+  """
+    Plots validation loss over time.
+
+    Args:
+        all_loss (list): List of validation loss values.
+        num_plot (int): Interval for sampling points to plot.
+  """
   # Sample values
   all_loss_np = [loss_item for loss_item in all_loss]
   x_values = range(len(all_loss_np))
@@ -88,6 +111,27 @@ def initialize_weights(model):
                 init.zeros_(module.bias)
 
 
+# Activation function selector
+def get_activation_fn(activation):
+    """
+    Returns the activation function based on the specified type.
+
+    Args:
+        activation (str): Type of activation ('sigmoid', 'leakyrelu', 'linear').
+
+    Returns:
+        function: Corresponding activation function.
+    """
+    if activation == 'sigmoid':
+        return torch.sigmoid
+    elif activation == 'leakyrelu':
+        return lambda x: torch.nn.functional.leaky_relu(x, negative_slope=0.1)
+    elif activation == 'linear':
+        return lambda x: x
+    else:
+        raise ValueError(f"Unsupported activation type: {activation}")
+
+
 # Define parameters for initialize autoencoder
 input_size = 3
 output_size = 1
@@ -102,6 +146,13 @@ initialize_weights(autoencoder)
 optimizer = optim.Adam(autoencoder.parameters(), lr=0.0001)
 scheduler = StepLR(optimizer, step_size=2, gamma=0.5)
 
+# Argument parsing for activation type
+parser = argparse.ArgumentParser(description="Train MLP with specified options.")
+parser.add_argument("--activation", type=str, required=True, choices=['sigmoid', 'leakyrelu', 'linear'], help="Activation type for MLP. Choose 'sigmoid', 'leakyrelu', or 'linear' depending on the model behavior you want to test.")
+args = parser.parse_args()
+activation_type = args.activation
+activation_fn = get_activation_fn(activation_type)
+
 
 # Training for 10 epoches
 all_loss = []
@@ -111,7 +162,7 @@ autoencoder.train()
 
 for epoch in range (10):
 
-  # Define seeds for training on same dataset in each epoch
+  # Define seeds for training on same dataset for each epoch
   # Since the dataset is too large, hard to generate before training
   torch.manual_seed(45) 
   np.random.seed(45) 
@@ -122,7 +173,7 @@ for epoch in range (10):
   for batch in range (150001):
 
     # Get the dataset and feed the MLPs into the autoencoder
-    lengths_list, weights_list, inputs, outputs = CreateDataset(num_samples, input_size, output_size, max_hidden_size)
+    lengths_list, weights_list, inputs, outputs = CreateDataset(num_samples, input_size, output_size, max_hidden_size, activation_fn)
     inputs_tensor = torch.stack(inputs)
 
     all_decoded = []
@@ -150,14 +201,13 @@ for epoch in range (10):
         start_index = i * max_hidden_size
         end_index = min((i + 1) * max_hidden_size,  decoded_matrices.size(2))
         sliced_matrix = decoded_matrices[:, :, start_index:end_index]
-        # print(sliced_matrix)
         if (i == 0):
           sliced_matrix = sliced_matrix[:,2:-2, :]
           mask = (sliced_matrix != 0).float()
           mask = mask[:, :1, :]
           mask = mask.repeat(1, inputs_tensor.size(1), 1)
           prev_result = torch.matmul(inputs_tensor, sliced_matrix)
-          prev_result = torch.sigmoid(prev_result) * mask
+          prev_result = activation_fn(prev_result) * mask
           curr_result = prev_result
         else:
           mask = (sliced_matrix != 0).float()
@@ -166,10 +216,8 @@ for epoch in range (10):
           row_indices = torch.argmax(non_zero_mask, dim=1)
           selected_rows = mask[torch.arange(mask.size(0)), row_indices].unsqueeze(1) 
           mask = selected_rows.repeat(1, 1000, 1)
-          curr_result = torch.sigmoid(curr_result) * mask
+          curr_result = activation_fn(curr_result) * mask
           prev_result = curr_result
- 
-      # Last layer
       sliced_matrix = decoded_matrices[:, :, (hidden_layer) * max_hidden_size : (hidden_layer) * max_hidden_size + 1]
       prediction = torch.matmul(curr_result, sliced_matrix)
       all_prediction.append(prediction)
@@ -218,7 +266,7 @@ for epoch in range (10):
   # Set a different seed for the generation of validation dataset
   torch.manual_seed(123)  
   np.random.seed(123)
-  validation_error = validation(autoencoder)
+  validation_error = validation(autoencoder, activation_fn)
   all_valid.append(validation_error)
   plot_validation(all_valid, 1)
   # Restore RNG state
