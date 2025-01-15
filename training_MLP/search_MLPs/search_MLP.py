@@ -19,10 +19,6 @@ import torch.optim.lr_scheduler as lr_scheduler
 import argparse
 
 
-# Set device
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print("Device: ", device)
-
 fixed_coeff = None
 
 def training_plot(all_loss, avg_loss, num_plot, num_hidden_layer):
@@ -141,8 +137,14 @@ with open('train.pkl', 'rb') as f:
 # Add argument parsing for activation type
 parser = argparse.ArgumentParser(description="Train MLP with specified options.")
 parser.add_argument("--activation", type=str, required=True, choices=['sigmoid', '', 'linear'], help="Activation type for MLP. Choose 'sigmoid', 'relu', or 'linear' depending on the model behavior you want to test.")
+parser.add_argument("--cuda", type=str, default="cuda:0", help="CUDA device to use (e.g., 'cuda:0', 'cuda:1'). Use 'cpu' to run on CPU.")
 args = parser.parse_args()
 activation = args.activation
+
+
+# Select device for training (GPU if available, otherwise CPU)
+device = torch.device(args.cuda if torch.cuda.is_available() else 'cpu')
+logging.basicConfig(filename='memory_usage.log', level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 # Run gradient descent for each of the decoder
 num_hidden_layers_list = [1, 2, 3, 4]

@@ -16,10 +16,6 @@ import torch.nn.init as init
 from torch.optim.lr_scheduler import StepLR
 import argparse
 
-# Select device for training (GPU if available, otherwise CPU)
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-logging.basicConfig(filename='memory_usage.log', level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
 # Training plot within every epoch, measured in Mean Squared Error (MSE)
 def training_plot(all_loss, avg_loss, num_plot, epoch):
   """
@@ -150,9 +146,16 @@ scheduler = StepLR(optimizer, step_size=2, gamma=0.5)
 # Argument parsing for activation type
 parser = argparse.ArgumentParser(description="Train MLP with specified options.")
 parser.add_argument("--activation", type=str, required=True, choices=['sigmoid', 'leakyrelu', 'linear'], help="Activation type for MLP. Choose 'sigmoid', 'leakyrelu', or 'linear' depending on the model behavior you want to test.")
+parser.add_argument("--cuda", type=str, default="cuda:0", help="CUDA device to use (e.g., 'cuda:0', 'cuda:1'). Use 'cpu' to run on CPU.")
 args = parser.parse_args()
 activation_type = args.activation
 activation_fn = get_activation_fn(activation_type)
+
+
+# Select device for training (GPU if available, otherwise CPU)
+device = torch.device(args.cuda if torch.cuda.is_available() else 'cpu')
+logging.basicConfig(filename='memory_usage.log', level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
 
 
 # Training for 10 epoches

@@ -18,12 +18,10 @@ pip install -r requirements.txt
    - Code and resources related to this are located in the `training_autoencoder` folder.
    - **Usage:**
      ```bash
-     python train_autoencoder.py --activation <activation_function>
+     python train_autoencoder.py --activation <activation_function> --cuda <cuda_device>
      ```
-     Replace `<activation_function>` with one of the following options:
-     - `sigmoid`
-     - `leakyrelu`
-     - `linear`
+     - Replace `<activation_function>` with one of `sigmoid`, `leakyrelu`, or `linear`
+     - Replace `<cuda_device>` with the desired CUDA device (e.g., `cuda:0`, `cuda:1`). Use `cpu` to run on CPU.
 
 
 # Train MLP
@@ -42,7 +40,8 @@ pip install -r requirements.txt
         - `<sparsity_level>`: A float between 0 and 1 indicating the sparsity level.
      2. Search MLP:
         ```bash
-        python search_MLP.py --activation <activation_function>
+        python search_MLP.py --activation <activation_function> --cuda <cuda_device>
         ```
         - `<activation_function>`: Must match the activation function used in dataset creation.
+        - Replace `<cuda_device>` with the desired CUDA device (e.g., `cuda:0`, `cuda:1`). Use `cpu` to run on CPU.
 
